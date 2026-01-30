@@ -117,3 +117,16 @@ Bu nedenle elde edilen sonuçlar, **trend tabanlı tahminler** olarak yorumlanma
 İşsizlik oranında gözlemlenen yatay ve dönemsel dalgalanmalar, istihdam artışının kendiliğinden gerçekleşmediğini ve **istihdam yaratma kapasitesi yüksek sektörlere yönelik uzun vadeli politikaların** önemini ortaya koymaktadır.
 
 Kişi başı gelirdeki kademeli artış ise ekonomik büyümenin sürdüğünü göstermekle birlikte, **sürdürülebilir refah artışı** için verimlilik odaklı yapısal dönüşümlerin desteklenmesi gerektiğine işaret etmektedir.
+
+---
+
+## İyileştirme Önerileri
+
+Bu çalışmada kullanılan doğrusal regresyon modeli, ekonomik göstergelerin uzun dönemli genel eğilimlerini yakalamada temel bir yaklaşım sunmaktadır. Ancak model performansının sınırlı kalmasının başlıca nedenleri ve olası iyileştirme alanları aşağıda özetlenmiştir:
+
+- Yalnızca **yıl değişkeninin** bağımsız değişken olarak kullanılması, ekonomik dinamiklerin tamamını yansıtmada yetersiz kalmaktadır. Gelecek çalışmalarda enflasyon, büyüme oranı ve işgücüne katılım gibi ek değişkenler modele dahil edilebilir.
+- Türkiye ekonomisinde gözlemlenen **kriz dönemleri ve yapısal kırılmalar**, doğrusal regresyon varsayımlarını zayıflatmaktadır. Bu nedenle zaman serisi tabanlı modeller (ARIMA, SARIMA) tercih edilebilir.
+- Kişi başı gelir değişkeni için **logaritmik dönüşüm** uygulanması, varyansın stabilize edilmesine ve hata ölçütlerinin iyileştirilmesine katkı sağlayabilir.
+- Test döneminin görece kısa olması, **R² ve RMSE değerlerinin oynak olmasına** yol açmaktadır. Daha uzun bir test aralığı ile model performansı daha sağlıklı değerlendirilebilir.
+
+Bu iyileştirmeler, modelin tahmin gücünü artırmaya ve sonuçların daha sağlam biçimde yorumlanmasına katkı sağlayacaktır.
