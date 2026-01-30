@@ -62,12 +62,7 @@ Her gösterge için metrikler `output/metrics.txt` dosyasına yazılır.
 
 Aşağıdaki yapı, repodaki mevcut dizin yapısı ile uyumludur:
 
----
-
-## Proje Yapısı
-
-Aşağıdaki yapı, repodaki mevcut dizin yapısı ile uyumludur:
-
+```text
 turkey-economic-indicators-ml/
 ├── data/
 │ ├── WB_WDI_NY_GDP_PCAP_CD.csv
@@ -79,6 +74,7 @@ turkey-economic-indicators-ml/
 │ ├── WB_WDI_SL_UEM_TOTL_ZS_predictions.csv
 │ └── metrics.txt
 └── linear_regression_forecast.py
+```
 
 ---
 
