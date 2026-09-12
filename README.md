@@ -1,132 +1,96 @@
-# Turkey Economic Indicators (ML) — Türkiye Ekonomik Göstergeler Tahmini
+# Türkiye Ekonomik Göstergeler Tahmini
 
-Bu depo, **Türkiye** için iki temel ekonomik göstergenin yıllara göre değişimini inceleyip **doğrusal regresyon (Linear Regression)** ile kısa vadeli tahminler üretir:
+Türkiye'nin kişi başına düşen gelir ve işsizlik oranı verilerini zaman sırasını koruyarak inceleyen, doğrusal regresyonla temel bir tahmin karşılaştırması üreten makine öğrenmesi çalışmasıdır.
 
-- **Kişi Başı Gelir (GDP per capita)**  
-- **İşsizlik Oranı (%)**
+> Bu proje eğitim ve portföy amaçlıdır. Sonuçlar ekonomik veya finansal tavsiye değildir.
 
-Çalışma, **SKA 8: İnsana Yakışır İş ve Ekonomik Büyüme** (Sürdürülebilir Kalkınma Amaçları) perspektifiyle değerlendirilmiştir.
+## Kapsam
 
----
+- Ülke: Türkiye (`TUR`)
+- Veri kaynağı: World Bank Open Data, SDMX CSV
+- Göstergeler: kişi başına gelir ve toplam işsizlik oranı
+- Eğitim dönemi: 2000–2020
+- Test dönemi: 2021–2024
+- Model: basit doğrusal regresyon
+- Metrikler: R² ve RMSE
 
-## Amaç ve Problem Tanımı
+Eğitim ve test dönemleri birbirinden tamamen ayrıdır. Böylece aynı yılın hem model eğitiminde hem de performans ölçümünde kullanılması engellenir.
 
-Geçmiş yıllara ait ekonomik göstergeler kullanılarak, bu göstergelerin gelecek yıllarda nasıl bir eğilim izleyeceğini tahmin etmek ve elde edilen bulgular üzerinden sürdürülebilir kalkınma hedeflerine yönelik yorum/öneri sunmaktır.
+## Kurulum ve çalıştırma
 
----
+Python 3.10 veya üzeri önerilir.
 
-## Veri Kaynağı
+```bash
+python -m venv .venv
+```
 
-Veriler **World Bank Open Data** platformundan alınmıştır ve **SDMX CSV formatındadır**.
+Windows:
 
-- Ülke: **Türkiye (TUR)**
-- Zaman aralığı: **2000–2024**
-- Frekans: **Yıllık**
+```powershell
+.venv\Scripts\activate
+pip install -r requirements.txt
+python linear_regression_forecast.py
+```
 
-> Not: Kod, SDMX formatında şu sütunları bekler: `TIME_PERIOD`, `OBS_VALUE`, `REF_AREA`, `INDICATOR` (varsa `INDICATOR_LABEL`).
+Linux/macOS:
 
----
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
+python linear_regression_forecast.py
+```
+
+Program `data/` altındaki tüm CSV dosyalarını işler ve sonuçları `output/` klasörüne yazar.
+
+## Proje yapısı
+
+```text
+.
+├── data/                              # World Bank SDMX CSV verileri
+├── output/                            # Grafik, tahmin ve metrik çıktıları
+├── linear_regression_forecast.py      # Veri hazırlama, model ve görselleştirme
+├── requirements.txt                   # Python bağımlılıkları
+└── README.md
+```
+
+## Üretilen çıktılar
+
+Her gösterge için:
+
+- `*_predictions.csv`: yıl, gerçek değer, tahmin ve hata
+- `*_forecast.png`: eğitim değerleri ile test gerçek/tahmin grafiği
+- `metrics.txt`: dönem bilgileri, R² ve RMSE
+
+Son çalıştırmadaki test sonuçları:
+
+| Gösterge | R² | RMSE |
+|---|---:|---:|
+| Kişi başına gelir | 0.147471 | 2058.823576 |
+| İşsizlik oranı | -3.472065 | 2.768387 |
+
+Negatif R², doğrusal modelin ilgili test döneminde yalnızca ortalama değeri kullanan temel yaklaşımdan daha zayıf kaldığını gösterir. Bu sonuç saklanmış veya olduğundan iyi gösterilmiş değildir; projenin temel modelinin sınırını açıkça ortaya koyar.
 
 ## Yöntem
 
-Bu projede her gösterge için **ayrı bir Basit Doğrusal Regresyon** modeli kurulmuştur:
+Model yalnızca yılı bağımsız değişken olarak kullanır:
 
-\[
+$$
 y = \beta_0 + \beta_1 x
-\]
+$$
 
-- **x:** Yıl  
-- **y:** Tahmin edilen gösterge (işsizlik oranı veya kişi başı gelir)
+Kod şu adımları uygular:
 
-### Eğitim / Test Ayrımı (Zaman Sırası Korunur)
+1. SDMX sütunlarını ve Türkiye verisini doğrular.
+2. Yıl ve gözlem değerlerini sayısal biçime dönüştürür.
+3. 2000–2020 döneminde modeli eğitir.
+4. 2021–2024 döneminde daha önce görülmemiş yılları tahmin eder.
+5. Tahmin tablosunu, grafikleri ve metrikleri yeniden üretir.
 
-Kodda dönemler sabit olarak şu şekilde tanımlıdır:
+## Sınırlılıklar ve geliştirme alanları
 
-- **Train (Eğitim): 2000–2020**
-- **Test: 2020–2024**
+- Tek açıklayıcı değişken olarak yıl kullanıldığı için ekonomik dinamikler bütünüyle temsil edilmez.
+- Krizler, politika değişiklikleri ve yapısal kırılmalar doğrusal modelde ayrıca ele alınmaz.
+- Test dönemi dört gözlemden oluştuğu için metrikler oynaktır.
+- Gelecek çalışmalarda enflasyon, büyüme ve işgücüne katılım gibi değişkenler; zaman serisi çapraz doğrulaması; ARIMA/SARIMA ve ağaç tabanlı modeller karşılaştırılabilir.
 
----
-
-## Değerlendirme Metrikleri
-
-Kod yalnızca iki metriği raporlar:
-
-- **R² (Belirlilik Katsayısı)**
-- **RMSE (Root Mean Squared Error)**
-
-Her gösterge için metrikler `output/metrics.txt` dosyasına yazılır.
-
----
-
-## Proje Yapısı
-
-Aşağıdaki yapı, repodaki mevcut dizin yapısı ile uyumludur:
-
-```text
-turkey-economic-indicators-ml/
-├── data/
-│ ├── WB_WDI_NY_GDP_PCAP_CD.csv
-│ └── WB_WDI_SL_UEM_TOTL_ZS.csv
-├── output/
-│ ├── WB_WDI_NY_GDP_PCAP_CD_forecast.png
-│ ├── WB_WDI_NY_GDP_PCAP_CD_predictions.csv
-│ ├── WB_WDI_SL_UEM_TOTL_ZS_forecast.png
-│ ├── WB_WDI_SL_UEM_TOTL_ZS_predictions.csv
-│ └── metrics.txt
-└── linear_regression_forecast.py
-```
-
----
-
-## Üretilen Çıktılar
-
-Her bir ekonomik gösterge (CSV dosyası) için aşağıdaki çıktılar üretilmektedir:
-
-### 1. Tahmin Tablosu (CSV)
-`*_predictions.csv` dosyası aşağıdaki sütunları içerir:
-- **Year**: Yıl  
-- **Actual**: Gerçek gözlem değeri  
-- **Predicted**: Doğrusal regresyon modeli ile tahmin edilen değer  
-- **Error**: Tahmin hatası (Predicted − Actual)
-
-### 2. Grafik (PNG)
-`*_forecast.png` dosyası, zaman serisini aşağıdaki bileşenlerle görselleştirir:
-- **Train (Actual)**: Eğitim dönemine ait gerçek değerler  
-- **Test (Actual)**: Test dönemine ait gerçek değerler  
-- **Test (Predicted)**: Test dönemi için model tahminleri  
-
-Grafikler, modelin geçmiş eğilimleri ne ölçüde yakalayabildiğini görsel olarak değerlendirmeyi sağlar.
-
-### 3. Performans Metrikleri (TXT)
-`metrics.txt` dosyasında her gösterge için aşağıdaki değerlendirme ölçütleri raporlanır:
-- **R² (Belirlilik Katsayısı)**
-- **RMSE (Root Mean Squared Error)**
-
----
-
-## Bulguların Kısa Yorumu
-
-Doğrusal regresyon modeli, ekonomik göstergelerin **uzun dönemli genel eğilimlerini** yakalamada kullanılabilir bir yöntem sunmaktadır. Ancak model; **ani ekonomik şoklar**, **yapısal kırılmalar** ve **politika değişiklikleri** gibi faktörleri doğrudan dikkate almamaktadır.
-
-Bu nedenle elde edilen sonuçlar, **trend tabanlı tahminler** olarak yorumlanmalı ve kısa vadeli öngörülerde temkinli kullanılmalıdır.
-
----
-
-## SKA 8 (İnsana Yakışır İş ve Ekonomik Büyüme) Perspektifi
-
-İşsizlik oranında gözlemlenen yatay ve dönemsel dalgalanmalar, istihdam artışının kendiliğinden gerçekleşmediğini ve **istihdam yaratma kapasitesi yüksek sektörlere yönelik uzun vadeli politikaların** önemini ortaya koymaktadır.
-
-Kişi başı gelirdeki kademeli artış ise ekonomik büyümenin sürdüğünü göstermekle birlikte, **sürdürülebilir refah artışı** için verimlilik odaklı yapısal dönüşümlerin desteklenmesi gerektiğine işaret etmektedir.
-
----
-
-## İyileştirme Önerileri
-
-Bu çalışmada kullanılan doğrusal regresyon modeli, ekonomik göstergelerin uzun dönemli genel eğilimlerini yakalamada temel bir yaklaşım sunmaktadır. Ancak model performansının sınırlı kalmasının başlıca nedenleri ve olası iyileştirme alanları aşağıda özetlenmiştir:
-
-- Yalnızca **yıl değişkeninin** bağımsız değişken olarak kullanılması, ekonomik dinamiklerin tamamını yansıtmada yetersiz kalmaktadır. Gelecek çalışmalarda enflasyon, büyüme oranı ve işgücüne katılım gibi ek değişkenler modele dahil edilebilir.
-- Türkiye ekonomisinde gözlemlenen **kriz dönemleri ve yapısal kırılmalar**, doğrusal regresyon varsayımlarını zayıflatmaktadır. Bu nedenle zaman serisi tabanlı modeller (ARIMA, SARIMA) tercih edilebilir.
-- Kişi başı gelir değişkeni için **logaritmik dönüşüm** uygulanması, varyansın stabilize edilmesine ve hata ölçütlerinin iyileştirilmesine katkı sağlayabilir.
-- Test döneminin görece kısa olması, **R² ve RMSE değerlerinin oynak olmasına** yol açmaktadır. Daha uzun bir test aralığı ile model performansı daha sağlıklı değerlendirilebilir.
-
-Bu iyileştirmeler, modelin tahmin gücünü artırmaya ve sonuçların daha sağlam biçimde yorumlanmasına katkı sağlayacaktır.
+Çalışma, Birleşmiş Milletler Sürdürülebilir Kalkınma Amaçları içindeki **SKA 8: İnsana Yakışır İş ve Ekonomik Büyüme** bağlamında temel bir veri analizi örneği olarak hazırlanmıştır.
