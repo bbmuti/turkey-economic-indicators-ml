@@ -14,7 +14,21 @@ Türkiye'nin kişi başına düşen gelir ve işsizlik oranı verilerini zaman s
 - Model: basit doğrusal regresyon
 - Metrikler: R² ve RMSE
 
-Eğitim ve test dönemleri birbirinden tamamen ayrıdır. Böylece aynı yılın hem model eğitiminde hem de performans ölçümünde kullanılması engellenir.
+Eğitim ve test dönemleri birbirinden tamamen ayrıdır. Böylece aynı yılın hem model eğitiminde hem de performans ölçümünde kullanılması engellenir ve zaman sırasına uygun bir değerlendirme yapılır.
+
+## Deney akışı
+
+```mermaid
+flowchart LR
+    A[World Bank SDMX CSV] --> B[Veri doğrulama]
+    B --> C[2000-2020 eğitim]
+    B --> D[2021-2024 test]
+    C --> E[Linear Regression]
+    E --> F[Tahmin]
+    D --> G[R² / RMSE]
+    F --> G
+    G --> H[CSV + grafik + metrics.txt]
+```
 
 ## Kurulum ve çalıştırma
 
@@ -55,20 +69,16 @@ Program `data/` altındaki tüm CSV dosyalarını işler ve sonuçları `output/
 
 ## Üretilen çıktılar
 
-Her gösterge için:
+Her gösterge için `*_predictions.csv`, `*_forecast.png` ve `metrics.txt` çıktıları üretilir.
 
-- `*_predictions.csv`: yıl, gerçek değer, tahmin ve hata
-- `*_forecast.png`: eğitim değerleri ile test gerçek/tahmin grafiği
-- `metrics.txt`: dönem bilgileri, R² ve RMSE
-
-Son çalıştırmadaki test sonuçları:
+## Son test sonuçları
 
 | Gösterge | R² | RMSE |
 |---|---:|---:|
 | Kişi başına gelir | 0.147471 | 2058.823576 |
 | İşsizlik oranı | -3.472065 | 2.768387 |
 
-Negatif R², doğrusal modelin ilgili test döneminde yalnızca ortalama değeri kullanan temel yaklaşımdan daha zayıf kaldığını gösterir. Bu sonuç saklanmış veya olduğundan iyi gösterilmiş değildir; projenin temel modelinin sınırını açıkça ortaya koyar.
+Negatif R², doğrusal modelin ilgili test döneminde yalnızca ortalama değeri kullanan temel yaklaşımdan daha zayıf kaldığını gösterir. Sonuçlar saklanmamış veya olduğundan iyi gösterilmemiştir; amaç modelin hangi koşullarda yetersiz kaldığını da görünür kılmaktır.
 
 ## Yöntem
 
@@ -78,19 +88,19 @@ $$
 y = \beta_0 + \beta_1 x
 $$
 
-Kod şu adımları uygular:
+Kod SDMX verisini doğrular, yıl ve gözlem değerlerini sayısallaştırır, modeli 2000–2020 döneminde eğitir, 2021–2024 dönemini tahmin eder ve metrik/grafik çıktılarını yeniden üretir.
 
-1. SDMX sütunlarını ve Türkiye verisini doğrular.
-2. Yıl ve gözlem değerlerini sayısal biçime dönüştürür.
-3. 2000–2020 döneminde modeli eğitir.
-4. 2021–2024 döneminde daha önce görülmemiş yılları tahmin eder.
-5. Tahmin tablosunu, grafikleri ve metrikleri yeniden üretir.
+## Sonuçların yorumu
+
+Bu çalışma, yüksek bir metrik üretmekten çok zaman sıralı değerlendirme ve model sınırlılıklarını doğru yorumlama üzerine kuruludur. Özellikle dört yıllık test döneminin küçük olması ve yalnızca `year` değişkeninin kullanılması, ekonomik serilerdeki yapısal kırılmaları açıklamak için yetersizdir.
 
 ## Sınırlılıklar ve geliştirme alanları
 
 - Tek açıklayıcı değişken olarak yıl kullanıldığı için ekonomik dinamikler bütünüyle temsil edilmez.
 - Krizler, politika değişiklikleri ve yapısal kırılmalar doğrusal modelde ayrıca ele alınmaz.
 - Test dönemi dört gözlemden oluştuğu için metrikler oynaktır.
-- Gelecek çalışmalarda enflasyon, büyüme ve işgücüne katılım gibi değişkenler; zaman serisi çapraz doğrulaması; ARIMA/SARIMA ve ağaç tabanlı modeller karşılaştırılabilir.
+- Gelecek çalışmalarda enflasyon, büyüme ve işgücüne katılım gibi değişkenler eklenebilir.
+- Zaman serisi çapraz doğrulaması uygulanabilir.
+- Linear Regression; ARIMA/SARIMA ve ağaç tabanlı modellerle aynı zaman bölünmesinde karşılaştırılabilir.
 
 Çalışma, Birleşmiş Milletler Sürdürülebilir Kalkınma Amaçları içindeki **SKA 8: İnsana Yakışır İş ve Ekonomik Büyüme** bağlamında temel bir veri analizi örneği olarak hazırlanmıştır.
